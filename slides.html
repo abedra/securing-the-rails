@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Securing the Rails</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="title" content="Securing the Rails"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2012-04-15 13:10:04 CDT"/>
+<meta name="author" content="Aaron Bedra"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+
+<link rel="stylesheet" type="text/css" href="common.css" />
+<link rel="stylesheet" type="text/css" href="screen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="projection.css" media="projection" />
+<link rel="stylesheet" type="text/css" href="presenter.css" media="presenter" />
+
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Securing the Rails</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Securing the Rails</a></li>
+<li><a href="#sec-2">2 What we're going to cover</a></li>
+<li><a href="#sec-3">3 This sounds like a lot, but you get a lot for free!</a></li>
+<li><a href="#sec-4">4 Cross Site Scripting (XSS) Basics</a>
+<ul>
+<li><a href="#sec-4-1">4.1 Possible outcomes of a successful XSS attack</a></li>
+<li><a href="#sec-4-2">4.2 What should you do?</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5 Cross Site Request Forgery (CSRF)</a></li>
+<li><a href="#sec-6">6 References</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Securing the Rails &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span>&nbsp;<span class="title">title</span></span></h2>
+<div class="outline-text-2" id="text-1">
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> What we're going to cover &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-2">
+
+<ul>
+<li>Cross Site Scripting (XSS)
+</li>
+<li>Cross Site Request Forgery (CSRF)
+</li>
+<li>SQL injection
+</li>
+<li>Session management
+</li>
+<li>Mass assignment
+</li>
+<li>Exception handling/notification
+</li>
+<li>Scanning your application
+</li>
+<li>Static analysis tools
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> This sounds like a lot, but you get a lot for free! &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-3">
+
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Cross Site Scripting (XSS) Basics &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-4">
+
+<ul>
+<li>A User injects executable code into your application
+</li>
+</ul>
+
+
+
+
+<pre class="src src-html">&lt;<span style="color: #0000ff;">script</span>&gt;alert('xss);&lt;/<span style="color: #0000ff;">script</span>&gt;
+</pre>
+
+
+<pre class="src src-sh">curl -d <span style="color: #8b2252;">"user[name]=&lt;script&gt;alert('xss');&lt;/script&gt;"</span> <span style="color: #8b2252;">\</span>
+        <span style="color: #8b2252;">"http://localhost:3000/user"</span>
+</pre>
+
+<ul>
+<li>Your application saves it
+</li>
+<li>When your application renders that information the code is executed
+</li>
+</ul>
+
+
+</div>
+
+<div id="outline-container-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Possible outcomes of a successful XSS attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-4-1">
+
+<ul>
+<li>Cookie theft
+</li>
+<li>Session hijacking
+</li>
+<li>Redirection of user data to an untrusted source
+</li>
+<li>Defacement of your application
+</li>
+<li>Denial of service
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-4-2">
+
+<ul>
+<li>Kick back and enjoy a frosty beverage!
+</li>
+<li>Rails 3+ automatically escapes output for you
+</li>
+<li>Unless you tell it not to
+</li>
+<li>But be careful of 3rd party libraries!
+</li>
+<li>Always audit your inputs for potential holes
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Cross Site Request Forgery (CSRF) &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-5">
+
+<ul>
+<li>A malicious script on another site acts on behalf of user that is currently logged into your application
+</li>
+<li>Let's say you are a bank
+</li>
+<li>And a customer is logged in
+</li>
+<li>When that customer visits <a href="http://malicious-site.org">http://malicious-site.org</a> an embedded tag makes a request to your application on behalf of the user
+</li>
+</ul>
+
+
+
+
+<pre class="src src-html">&lt;<span style="color: #0000ff;">script</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text/javascript"</span>&gt;
+  $.ajax(
+      {  
+          type: 'POST',
+          url: 'https://yourapp.com/transfer',
+          crossDomain: true,
+          data: '{<span style="color: #8b2252;">"from"</span>:<span style="color: #8b2252;">"youraccountnumber"</span>, 
+                  <span style="color: #8b2252;">"to"</span>:<span style="color: #8b2252;">"attackersaccountnumber"</span>}'
+      }
+  );
+&lt;/<span style="color: #0000ff;">script</span>&gt;
+</pre>
+
+<ul>
+<li>Since the victim is logged in and the site doesn't protect against this type of attack, the funds are transfered.
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> References &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-6">
+
+<ul>
+<li>This Presentation <a href="https://github.com/abedra/securing-the-rails">github.com/abedra/securing-the-rails</a>
+</li>
+<li>Brakeman Scanner <a href="http://brakemanscanner.org/">brakemanscanner.org</a>
+</li>
+<li>RoR Security Guide <a href="http://guides.rubyonrails.org/security.html">guides.rubyonrails.org/security.html</a>
+</li>
+<li>Practical Software Security <a href="https://github.com/curphey/pss_book">github.com/curphey/pss<sub>book</sub></a>
+</li>
+<li>OWASP Top 10 <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project">www.owasp.org/index.php/Category:OWASP<sub>Top</sub><sub>Ten</sub><sub>Project</sub></a>
+</li>
+</ul>
+
+
+
+
+
+
+<script type="text/javascript" src="org-html-slideshow.js"></script>
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2012-04-15 13:10:04 CDT</p>
+<p class="author">Author: Aaron Bedra</p>
+<p class="creator">Org version 7.8.03 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

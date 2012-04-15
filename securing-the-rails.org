@@ -1,0 +1,80 @@
+#+TITLE:     Securing the Rails
+#+AUTHOR:    Aaron Bedra
+#+EMAIL:     aaron@aaronbedra.com
+#+LANGUAGE:  en
+
+* Securing the Rails 						      :slide:title:
+* What we're going to cover					      :slide:
+  - Cross Site Scripting (XSS)
+  - Cross Site Request Forgery (CSRF)
+  - SQL injection
+  - Session management
+  - Mass assignment
+  - Exception handling/notification
+  - Scanning your application
+  - Static analysis tools
+* This sounds like a lot, but you get a lot for free! 		      :slide:
+* Cross Site Scripting (XSS) Basics 				      :slide:
+  - A User injects executable code into your application
+#+begin_src html
+  <script>alert('xss);</script>
+#+end_src
+#+begin_src sh
+  curl -d "user[name]=<script>alert('xss');</script>" \
+          "http://localhost:3000/user"
+#+end_src
+  - Your application saves it
+  - When your application renders that information the code is executed
+** Possible outcomes of a successful XSS attack 		      :slide:
+  - Cookie theft
+  - Session hijacking
+  - Redirection of user data to an untrusted source
+  - Defacement of your application
+  - Denial of service
+** What should you do?						      :slide:
+  - Kick back and enjoy a frosty beverage!
+  - Rails 3+ automatically escapes output for you
+  - Unless you tell it not to
+  - But be careful of 3rd party libraries!
+  - Always audit your inputs for potential holes
+* Cross Site Request Forgery (CSRF)				      :slide:
+  - A malicious script on another site acts on behalf of user that is currently logged into your application
+  - Let's say you are a bank
+  - And a customer is logged in
+  - When that customer visits http://malicious-site.org an embedded tag makes a request to your application on behalf of the user
+#+begin_src html
+  <script type="text/javascript">
+    $.ajax(
+        {  
+            type: 'POST',
+            url: 'https://yourapp.com/transfer',
+            crossDomain: true,
+            data: '{"from":"youraccountnumber", 
+                    "to":"attackersaccountnumber"}'
+        }
+    );
+  </script>
+#+end_src
+  - Since the victim is logged in and the site doesn't protect against this type of attack, the funds are transfered.
+* References 							      :slide:
+  - This Presentation [[https://github.com/abedra/securing-the-rails][github.com/abedra/securing-the-rails]]
+  - Brakeman Scanner [[http://brakemanscanner.org/][brakemanscanner.org]]
+  - RoR Security Guide [[http://guides.rubyonrails.org/security.html][guides.rubyonrails.org/security.html]]
+  - Practical Software Security [[https://github.com/curphey/pss_book][github.com/curphey/pss_book]]
+  - OWASP Top 10 [[https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project][www.owasp.org/index.php/Category:OWASP_Top_Ten_Project]]
+
+#+TAGS: slide(s)
+
+#+STYLE: <link rel="stylesheet" type="text/css" href="common.css" />
+#+STYLE: <link rel="stylesheet" type="text/css" href="screen.css" media="screen" />
+#+STYLE: <link rel="stylesheet" type="text/css" href="projection.css" media="projection" />
+#+STYLE: <link rel="stylesheet" type="text/css" href="presenter.css" media="presenter" />
+
+#+BEGIN_HTML
+<script type="text/javascript" src="org-html-slideshow.js"></script>
+#+END_HTML
+
+# Local Variables:
+# org-export-html-style-include-default: nil
+# org-export-html-style-include-scripts: nil
+# End:
