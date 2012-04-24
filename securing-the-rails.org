@@ -112,7 +112,7 @@
     :expire_after => 60.minutes
 #+end_src
    - See XSS section
-** A note about cookie based session storage
+** A note about cookie based session storage			      :slide:
    - As a general rule of thumb, you should only store data that is absolutely critical to maintain the state of your application
    - In other words, don't put anything but a user id in your session data
    - Rails cookie store data might look encrypted, but it is only base64 encoded, making it very easy to decode the information once it is stolen
@@ -150,7 +150,7 @@
 ** Possible outcomes of improper exception handling/notification      :slide:
    - Attackers gain information about your system and use it against you as they form more focused attacks
    - Users perform denial of service (DoS) attacks against your system by triggering floods of exceptions, which are expensive to process
-** What should you do?
+** What should you do?						      :slide:
    - Test! I'm not talking about unit testing here, I mean get people to actually click around any try to produce exceptions
    - Monitor your logs for exceptional situations and fix them immediately, no matter how insignificant they seem
    - If you are using a third party system, ensure that your data is travelling over SSL
