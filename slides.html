@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
 <meta name="title" content="Securing the Rails"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2012-04-15 13:10:04 CDT"/>
+<meta name="generated" content="2012-04-24 11:16:27 CDT"/>
 <meta name="author" content="Aaron Bedra"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -35,15 +35,48 @@
 <ul>
 <li><a href="#sec-1">1 Securing the Rails</a></li>
 <li><a href="#sec-2">2 What we're going to cover</a></li>
-<li><a href="#sec-3">3 This sounds like a lot, but you get a lot for free!</a></li>
-<li><a href="#sec-4">4 Cross Site Scripting (XSS) Basics</a>
+<li><a href="#sec-3">3 What we're not going to cover</a></li>
+<li><a href="#sec-4">4 This sounds like a lot, but you get a lot for free!</a></li>
+<li><a href="#sec-5">5 Cross Site Scripting (XSS) Basics</a>
 <ul>
-<li><a href="#sec-4-1">4.1 Possible outcomes of a successful XSS attack</a></li>
-<li><a href="#sec-4-2">4.2 What should you do?</a></li>
+<li><a href="#sec-5-1">5.1 Possible outcomes of a successful XSS attack</a></li>
+<li><a href="#sec-5-2">5.2 What should you do?</a></li>
 </ul>
 </li>
-<li><a href="#sec-5">5 Cross Site Request Forgery (CSRF)</a></li>
-<li><a href="#sec-6">6 References</a></li>
+<li><a href="#sec-6">6 Cross Site Request Forgery (CSRF)</a>
+<ul>
+<li><a href="#sec-6-1">6.1 Possible outcomes of a successful CSRF attack</a></li>
+<li><a href="#sec-6-2">6.2 What should you do?</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">7 SQL Injection</a>
+<ul>
+<li><a href="#sec-7-1">7.1 Possible outcomes of a successful SQL injection attack</a></li>
+<li><a href="#sec-7-2">7.2 What should you do?</a></li>
+</ul>
+</li>
+<li><a href="#sec-8">8 Session Hijacking/Replay</a>
+<ul>
+<li><a href="#sec-8-1">8.1 Possible outcomes of a successful Session hijack</a></li>
+<li><a href="#sec-8-2">8.2 What should you do?</a></li>
+<li><a href="#sec-8-3">8.3 A note about cookie based session storage</a></li>
+</ul>
+</li>
+<li><a href="#sec-9">9 Mass Assignment</a>
+<ul>
+<li><a href="#sec-9-1">9.1 Possible outcomes of a successful mass assignment attack</a></li>
+<li><a href="#sec-9-2">9.2 What should I do?</a></li>
+</ul>
+</li>
+<li><a href="#sec-10">10 Exception Handling and Notification</a>
+<ul>
+<li><a href="#sec-10-1">10.1 Possible outcomes of improper exception handling/notification</a></li>
+<li><a href="#sec-10-2">10.2 What should you do?</a></li>
+</ul>
+</li>
+<li><a href="#sec-11">11 Static analysis tools</a></li>
+<li><a href="#sec-12">12 Where can I learn more?</a></li>
+<li><a href="#sec-13">13 References</a></li>
 </ul>
 </div>
 </div>
@@ -73,9 +106,9 @@
 </li>
 <li>Exception handling/notification
 </li>
-<li>Scanning your application
-</li>
 <li>Static analysis tools
+</li>
+<li>Where can you learn more?
 </li>
 </ul>
 
@@ -84,16 +117,35 @@
 </div>
 
 <div id="outline-container-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> This sounds like a lot, but you get a lot for free! &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<h2 id="sec-3"><span class="section-number-2">3</span> What we're not going to cover &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
 <div class="outline-text-2" id="text-3">
+
+<ul>
+<li>Physical security of your servers
+</li>
+<li>Operating System security
+</li>
+<li>Configuration management
+</li>
+<li>Compliance concerns
+</li>
+</ul>
 
 </div>
 
 </div>
 
 <div id="outline-container-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Cross Site Scripting (XSS) Basics &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<h2 id="sec-4"><span class="section-number-2">4</span> This sounds like a lot, but you get a lot for free! &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
 <div class="outline-text-2" id="text-4">
+
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Cross Site Scripting (XSS) Basics &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-5">
 
 <ul>
 <li>A User injects executable code into your application
@@ -103,7 +155,7 @@
 
 
 
-<pre class="src src-html">&lt;<span style="color: #0000ff;">script</span>&gt;alert('xss);&lt;/<span style="color: #0000ff;">script</span>&gt;
+<pre class="src src-html">&lt;<span style="color: #0000ff;">script</span>&gt;alert('xss');&lt;/<span style="color: #0000ff;">script</span>&gt;
 </pre>
 
 
@@ -121,9 +173,9 @@
 
 </div>
 
-<div id="outline-container-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Possible outcomes of a successful XSS attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
-<div class="outline-text-3" id="text-4-1">
+<div id="outline-container-5-1" class="outline-3">
+<h3 id="sec-5-1"><span class="section-number-3">5.1</span> Possible outcomes of a successful XSS attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-5-1">
 
 <ul>
 <li>Cookie theft
@@ -142,9 +194,9 @@
 
 </div>
 
-<div id="outline-container-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-5-2" class="outline-3">
+<h3 id="sec-5-2"><span class="section-number-3">5.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-5-2">
 
 <ul>
 <li>Kick back and enjoy a frosty beverage!
@@ -157,6 +209,15 @@
 </li>
 <li>Always audit your inputs for potential holes
 </li>
+<li>If you are on Rails 2, install the <code>rails_xss</code> gem
+</li>
+<li>You can accomplish the same thing by adding <code>h()</code> calls to all of your templates
+<ul>
+<li>Pro Tip: Don't do this, you will fail.
+</li>
+</ul>
+
+</li>
 </ul>
 
 </div>
@@ -164,16 +225,12 @@
 
 </div>
 
-<div id="outline-container-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Cross Site Request Forgery (CSRF) &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Cross Site Request Forgery (CSRF) &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-6">
 
 <ul>
-<li>A malicious script on another site acts on behalf of user that is currently logged into your application
-</li>
-<li>Let's say you are a bank
-</li>
-<li>And a customer is logged in
+<li>Let's say you are a bank, and a customer is logged in
 </li>
 <li>When that customer visits <a href="http://malicious-site.org">http://malicious-site.org</a> an embedded tag makes a request to your application on behalf of the user
 </li>
@@ -184,19 +241,28 @@
 
 <pre class="src src-html">&lt;<span style="color: #0000ff;">script</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text/javascript"</span>&gt;
   $.ajax(
-      {  
+      {
           type: 'POST',
           url: 'https://yourapp.com/transfer',
           crossDomain: true,
-          data: '{<span style="color: #8b2252;">"from"</span>:<span style="color: #8b2252;">"youraccountnumber"</span>, 
+          data: '{<span style="color: #8b2252;">"from"</span>:<span style="color: #8b2252;">"youraccountnumber"</span>,
                   <span style="color: #8b2252;">"to"</span>:<span style="color: #8b2252;">"attackersaccountnumber"</span>}'
       }
   );
 &lt;/<span style="color: #0000ff;">script</span>&gt;
 </pre>
 
+
+</div>
+
+<div id="outline-container-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Possible outcomes of a successful CSRF attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-6-1">
+
 <ul>
-<li>Since the victim is logged in and the site doesn't protect against this type of attack, the funds are transfered.
+<li>Any action an authenticated user can take is able to be performed on behalf of that user by a malicious agent
+</li>
+<li>Example: Working with Rails recommendations circa 2008
 </li>
 </ul>
 
@@ -204,9 +270,373 @@
 
 </div>
 
-<div id="outline-container-6" class="outline-2">
-<h2 id="sec-6"><span class="section-number-2">6</span> References &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-6-2">
+
+<ul>
+<li>Again, relax, knowing that Rails has your back on this one
+</li>
+<li>Make sure the option is set in the the application configuration that enables this
+</li>
+<li>Check again that this option is set
+</li>
+</ul>
+
+
+
+
+<pre class="src src-ruby">protect_from_forgery <span style="color: #008b8b;">:secret</span> =&gt; <span style="color: #8b2252;">"123456789012345678901234567890..."</span>
+</pre>
+
+<ul>
+<li>Flag any changes to the file that contains this option and audit the changes to ensure it doesn't get turned off
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> SQL Injection &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-7">
+
+<ul>
+<li>These attacks try to manipulate the your applications data or expose data that a user wouldn't otherwise have access to.
+</li>
+<li>It is normally a pretty easy attack to pull off, but can get complicated in certain situations
+</li>
+</ul>
+
+
+
+
+<pre class="src src-sql">SELECT * FROM users WHERE login = <span style="color: #8b2252;">''</span> OR <span style="color: #8b2252;">'1'</span>=<span style="color: #8b2252;">'1'</span>
+  AND password = <span style="color: #8b2252;">''</span> OR <span style="color: #8b2252;">'2'</span>&gt;<span style="color: #8b2252;">'1'</span> LIMIT 1
+</pre>
+
+<ul>
+<li>This could be introduced by doing the following inside of a rails application
+</li>
+</ul>
+
+
+
+
+<pre class="src src-ruby"><span style="color: #228b22;">User</span>.first(<span style="color: #8b2252;">"login = '</span><span style="color: #a0522d;">#{params[:name]}</span><span style="color: #8b2252;">'</span>
+<span style="color: #8b2252;">           AND password = '</span><span style="color: #a0522d;">#{params[:password]}</span><span style="color: #8b2252;">'"</span>)
+</pre>
+
+
+</div>
+
+<div id="outline-container-7-1" class="outline-3">
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Possible outcomes of a successful SQL injection attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-7-1">
+
+<ul>
+<li>Unauthorized access to data
+</li>
+<li>Tampering with data
+</li>
+<li>Defacement of your system
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-7-2">
+
+<ul>
+<li>This type of attack is pretty much covered by Rails
+</li>
+<li>If you use standard Active Record calls, everything is properly escaped for you
+</li>
+<li>Normally, params are also escaped by default
+</li>
+<li>You have to work pretty hard to introduce a SQL injection hole in your application
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Session Hijacking/Replay &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-8">
+
+<ul>
+<li>Once a user is authenticated against your system, the session is their stamp of entry. If another person gets a copy of the session details (the cookie), they can present this to the sytem to gain the same access that the real user has to the system
+</li>
+<li>Unfortunately, this is really easy to do
+</li>
+<li>If your cookies travel over plain text (HTTP vs HTTPS), then all it takes is for a user to be on a public network while they log into your system
+</li>
+<li>This is also possible via an XSS attack
+</li>
+</ul>
+
+
+</div>
+
+<div id="outline-container-8-1" class="outline-3">
+<h3 id="sec-8-1"><span class="section-number-3">8.1</span> Possible outcomes of a successful Session hijack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-8-1">
+
+<ul>
+<li>The attacker will have access to anything a the hijacked users session permits
+</li>
+<li>If this is an admin account, the impact can be huge
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-8-2" class="outline-3">
+<h3 id="sec-8-2"><span class="section-number-3">8.2</span> What should you do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-8-2">
+
+<ul>
+<li>Protect your login and cookie transfer by forcing it to travel over SSL
+<ul>
+<li>This will require you to purchase an SSL certificate and set it up on your server(s)
+</li>
+</ul>
+
+</li>
+</ul>
+
+
+
+
+<pre class="src src-ruby"><span style="color: #228b22;">MyApp</span>::<span style="color: #228b22;">Application</span>.config.session_store <span style="color: #008b8b;">:cookie_store</span>,
+  <span style="color: #008b8b;">:key</span> =&gt; <span style="color: #8b2252;">'_my_app_session'</span>,
+  <span style="color: #008b8b;">:secure</span> =&gt; <span style="color: #228b22;">Rails</span>.env == <span style="color: #8b2252;">'production'</span>,
+  <span style="color: #008b8b;">:httponly</span> =&gt; <span style="color: #a0522d;">true</span>,
+  <span style="color: #008b8b;">:expire_after</span> =&gt; 60.minutes
+</pre>
+
+<ul>
+<li>See XSS section
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-8-3" class="outline-3">
+<h3 id="sec-8-3"><span class="section-number-3">8.3</span> A note about cookie based session storage</h3>
+<div class="outline-text-3" id="text-8-3">
+
+<ul>
+<li>As a general rule of thumb, you should only store data that is absolutely critical to maintain the state of your application
+</li>
+<li>In other words, don't put anything but a user id in your session data
+</li>
+<li>Rails cookie store data might look encrypted, but it is only base64 encoded, making it very easy to decode the information once it is stolen
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Mass Assignment &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-9">
+
+<ul>
+<li>This is what happened to Github recently
+</li>
+<li>Given a model with unrestricted attribute accessibility, it is possible for a user to modify attributes that should not be accessible.
+</li>
+<li>Example
+</li>
+</ul>
+
+
+
+
+<pre class="src src-ruby"><span style="color: #228b22;">User</span>.create(params[<span style="color: #008b8b;">:user</span>])
+</pre>
+
+<ul>
+<li>While this seems harmless, think of the follwing post data
+</li>
+</ul>
+
+
+
+
+<pre class="src src-sh">curl -d <span style="color: #8b2252;">"user[admin]=true"</span> http://localhost:3000/user
+</pre>
+
+
+</div>
+
+<div id="outline-container-9-1" class="outline-3">
+<h3 id="sec-9-1"><span class="section-number-3">9.1</span> Possible outcomes of a successful mass assignment attack &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-9-1">
+
+<ul>
+<li>An attacker can disrupt data integrity
+</li>
+<li>An attacker can escalate permissions and control the system
+</li>
+<li>If you user model is tied directly to a directory platform (think Active Directory), they can gain access to your network and servers as well
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-9-2" class="outline-3">
+<h3 id="sec-9-2"><span class="section-number-3">9.2</span> What should I do? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-9-2">
+
+<ul>
+<li>Fortunately this is quite easy to protect against
+</li>
+</ul>
+
+
+
+
+<pre class="src src-ruby"><span style="color: #7f007f;">class</span> <span style="color: #228b22;">User</span>
+  attr_accessible <span style="color: #008b8b;">:name</span>, <span style="color: #008b8b;">:email</span>, <span style="color: #008b8b;">:phone</span>
+<span style="color: #7f007f;">end</span>
+</pre>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Exception Handling and Notification &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-10">
+
+<ul>
+<li>When mistakes surface as exceptions, it is important to record them
+</li>
+<li>If a user is able to trigger an exception by acting on your system, it says a lot
+</li>
+<li>If an attacker sees this behavior, they will focus harder on that area of your system looking for a way in
+</li>
+<li>When you record exceptions, it is usually done via a system that will notify you that the exception occurred
+<ul>
+<li>Examples: Airbrake, Exception Notifier
+</li>
+</ul>
+
+</li>
+<li>While these tools offer advantages, they also present additional potential security holes
+</li>
+<li>If exception data is sent in plain text, it can be stolen and used against you
+</li>
+<li>If you are using a 3rd party service, your exception data is only as safe as their systems
+</li>
+</ul>
+
+
+</div>
+
+<div id="outline-container-10-1" class="outline-3">
+<h3 id="sec-10-1"><span class="section-number-3">10.1</span> Possible outcomes of improper exception handling/notification &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h3>
+<div class="outline-text-3" id="text-10-1">
+
+<ul>
+<li>Attackers gain information about your system and use it against you as they form more focused attacks
+</li>
+<li>Users perform denial of service (DoS) attacks against your system by triggering floods of exceptions, which are expensive to process
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-10-2" class="outline-3">
+<h3 id="sec-10-2"><span class="section-number-3">10.2</span> What should you do?</h3>
+<div class="outline-text-3" id="text-10-2">
+
+<ul>
+<li>Test! I'm not talking about unit testing here, I mean get people to actually click around any try to produce exceptions
+</li>
+<li>Monitor your logs for exceptional situations and fix them immediately, no matter how insignificant they seem
+</li>
+<li>If you are using a third party system, ensure that your data is travelling over SSL
+</li>
+<li>If you are using a third party system, determine the risk of access to your data via a breach in their system
+<ul>
+<li>Essentially, is it ok if someone else owns that data?
+</li>
+</ul>
+
+</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> Static analysis tools &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-11">
+
+<ul>
+<li>These tools can look at your code and check for potential vulnerabilities
+</li>
+<li><img src="brakeman-all.png"  alt="brakeman-all.png" />
+</li>
+<li><img src="brakeman-mass.png"  alt="brakeman-mass.png" />
+</li>
+<li><img src="brakeman-xss.png"  alt="brakeman-xss.png" />
+</li>
+<li><img src="brakeman-misc.png"  alt="brakeman-misc.png" />
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-12" class="outline-2">
+<h2 id="sec-12"><span class="section-number-2">12</span> Where can I learn more? &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-12">
+
+<ul>
+<li>OWASP WebGoat project
+</li>
+<li>Web Application Hackers Handbook
+</li>
+<li>Practical Software Security
+</li>
+<li>Practice Practice Pratice!
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="outline-container-13" class="outline-2">
+<h2 id="sec-13"><span class="section-number-2">13</span> References &nbsp;&nbsp;&nbsp;<span class="tag"><span class="slide">slide</span></span></h2>
+<div class="outline-text-2" id="text-13">
 
 <ul>
 <li>This Presentation <a href="https://github.com/abedra/securing-the-rails">github.com/abedra/securing-the-rails</a>
@@ -217,10 +647,13 @@
 </li>
 <li>Practical Software Security <a href="https://github.com/curphey/pss_book">github.com/curphey/pss<sub>book</sub></a>
 </li>
+<li>Web Application Hackers Handbook <a href="http://mdsec.net/wahh/">mdsec.net/wahh</a>
+</li>
 <li>OWASP Top 10 <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project">www.owasp.org/index.php/Category:OWASP<sub>Top</sub><sub>Ten</sub><sub>Project</sub></a>
 </li>
+<li>OWASP WebGaot Project <a href="https://www.owasp.org/index.php/Category:OWASP_WebGoat_Project">www.owasp.org/index.php/Category:OWASP<sub>WebGoat</sub><sub>Project</sub></a>
+</li>
 </ul>
-
 
 
 
@@ -233,7 +666,7 @@
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2012-04-15 13:10:04 CDT</p>
+<p class="date">Date: 2012-04-24 11:16:27 CDT</p>
 <p class="author">Author: Aaron Bedra</p>
 <p class="creator">Org version 7.8.03 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

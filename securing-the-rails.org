@@ -11,13 +11,18 @@
   - Session management
   - Mass assignment
   - Exception handling/notification
-  - Scanning your application
   - Static analysis tools
+  - Where can you learn more?
+* What we're not going to cover					      :slide:
+  - Physical security of your servers
+  - Operating System security
+  - Configuration management
+  - Compliance concerns
 * This sounds like a lot, but you get a lot for free! 		      :slide:
 * Cross Site Scripting (XSS) Basics 				      :slide:
   - A User injects executable code into your application
 #+begin_src html
-  <script>alert('xss);</script>
+  <script>alert('xss');</script>
 #+end_src
 #+begin_src sh
   curl -d "user[name]=<script>alert('xss');</script>" \
@@ -37,32 +42,139 @@
   - Unless you tell it not to
   - But be careful of 3rd party libraries!
   - Always audit your inputs for potential holes
+  - If you are on Rails 2, install the =rails_xss= gem
+  - You can accomplish the same thing by adding =h()= calls to all of your templates
+    - Pro Tip: Don't do this, you will fail.
 * Cross Site Request Forgery (CSRF)				      :slide:
-  - A malicious script on another site acts on behalf of user that is currently logged into your application
-  - Let's say you are a bank
-  - And a customer is logged in
+  - Let's say you are a bank, and a customer is logged in
   - When that customer visits http://malicious-site.org an embedded tag makes a request to your application on behalf of the user
 #+begin_src html
   <script type="text/javascript">
     $.ajax(
-        {  
+        {
             type: 'POST',
             url: 'https://yourapp.com/transfer',
             crossDomain: true,
-            data: '{"from":"youraccountnumber", 
+            data: '{"from":"youraccountnumber",
                     "to":"attackersaccountnumber"}'
         }
     );
   </script>
 #+end_src
-  - Since the victim is logged in and the site doesn't protect against this type of attack, the funds are transfered.
+** Possible outcomes of a successful CSRF attack 		      :slide:
+   - Any action an authenticated user can take is able to be performed on behalf of that user by a malicious agent
+   - Example: Working with Rails recommendations circa 2008
+** What should you do?						      :slide:
+   - Again, relax, knowing that Rails has your back on this one
+   - Make sure the option is set in the the application configuration that enables this
+   - Check again that this option is set
+#+begin_src ruby
+  protect_from_forgery :secret => "123456789012345678901234567890..."
+#+end_src
+   - Flag any changes to the file that contains this option and audit the changes to ensure it doesn't get turned off
+* SQL Injection							      :slide:
+  - These attacks try to manipulate the your applications data or expose data that a user wouldn't otherwise have access to.
+  - It is normally a pretty easy attack to pull off, but can get complicated in certain situations
+#+begin_src sql
+  SELECT * FROM users WHERE login = '' OR '1'='1'
+    AND password = '' OR '2'>'1' LIMIT 1
+#+end_src
+  - This could be introduced by doing the following inside of a rails application
+#+begin_src ruby
+  User.first("login = '#{params[:name]}'
+             AND password = '#{params[:password]}'")
+#+end_src
+** Possible outcomes of a successful SQL injection attack	      :slide:
+   - Unauthorized access to data
+   - Tampering with data
+   - Defacement of your system
+** What should you do?						      :slide:
+   - This type of attack is pretty much covered by Rails
+   - If you use standard Active Record calls, everything is properly escaped for you
+   - Normally, params are also escaped by default
+   - You have to work pretty hard to introduce a SQL injection hole in your application
+* Session Hijacking/Replay 					      :slide:
+  - Once a user is authenticated against your system, the session is their stamp of entry. If another person gets a copy of the session details (the cookie), they can present this to the sytem to gain the same access that the real user has to the system
+  - Unfortunately, this is really easy to do
+  - If your cookies travel over plain text (HTTP vs HTTPS), then all it takes is for a user to be on a public network while they log into your system
+  - This is also possible via an XSS attack
+** Possible outcomes of a successful Session hijack		      :slide:
+   - The attacker will have access to anything a the hijacked users session permits
+   - If this is an admin account, the impact can be huge
+** What should you do?						      :slide:
+   - Protect your login and cookie transfer by forcing it to travel over SSL
+     - This will require you to purchase an SSL certificate and set it up on your server(s)
+#+begin_src ruby
+  MyApp::Application.config.session_store :cookie_store,
+    :key => '_my_app_session',
+    :secure => Rails.env == 'production',
+    :httponly => true,
+    :expire_after => 60.minutes
+#+end_src
+   - See XSS section
+** A note about cookie based session storage
+   - As a general rule of thumb, you should only store data that is absolutely critical to maintain the state of your application
+   - In other words, don't put anything but a user id in your session data
+   - Rails cookie store data might look encrypted, but it is only base64 encoded, making it very easy to decode the information once it is stolen
+* Mass Assignment						      :slide:
+  - This is what happened to Github recently
+  - Given a model with unrestricted attribute accessibility, it is possible for a user to modify attributes that should not be accessible.
+  - Example
+#+begin_src ruby
+  User.create(params[:user])
+#+end_src
+  - While this seems harmless, think of the follwing post data
+#+begin_src sh
+  curl -d "user[admin]=true" http://localhost:3000/user
+#+end_src
+** Possible outcomes of a successful mass assignment attack	      :slide:
+   - An attacker can disrupt data integrity
+   - An attacker can escalate permissions and control the system
+   - If you user model is tied directly to a directory platform (think Active Directory), they can gain access to your network and servers as well
+** What should I do?						      :slide:
+   - Fortunately this is quite easy to protect against
+#+begin_src ruby
+  class User
+    attr_accessible :name, :email, :phone
+  end
+#+end_src
+* Exception Handling and Notification 				      :slide:
+  - When mistakes surface as exceptions, it is important to record them
+  - If a user is able to trigger an exception by acting on your system, it says a lot
+  - If an attacker sees this behavior, they will focus harder on that area of your system looking for a way in
+  - When you record exceptions, it is usually done via a system that will notify you that the exception occurred
+    - Examples: Airbrake, Exception Notifier
+  - While these tools offer advantages, they also present additional potential security holes
+  - If exception data is sent in plain text, it can be stolen and used against you
+  - If you are using a 3rd party service, your exception data is only as safe as their systems
+** Possible outcomes of improper exception handling/notification      :slide:
+   - Attackers gain information about your system and use it against you as they form more focused attacks
+   - Users perform denial of service (DoS) attacks against your system by triggering floods of exceptions, which are expensive to process
+** What should you do?
+   - Test! I'm not talking about unit testing here, I mean get people to actually click around any try to produce exceptions
+   - Monitor your logs for exceptional situations and fix them immediately, no matter how insignificant they seem
+   - If you are using a third party system, ensure that your data is travelling over SSL
+   - If you are using a third party system, determine the risk of access to your data via a breach in their system
+     - Essentially, is it ok if someone else owns that data?
+* Static analysis tools						      :slide:
+  - These tools can look at your code and check for potential vulnerabilities
+  - file:brakeman-all.png
+  - file:brakeman-mass.png
+  - file:brakeman-xss.png
+  - file:brakeman-misc.png
+* Where can I learn more?					      :slide:
+  - OWASP WebGoat project
+  - Web Application Hackers Handbook
+  - Practical Software Security
+  - Practice Practice Pratice!
 * References 							      :slide:
   - This Presentation [[https://github.com/abedra/securing-the-rails][github.com/abedra/securing-the-rails]]
   - Brakeman Scanner [[http://brakemanscanner.org/][brakemanscanner.org]]
   - RoR Security Guide [[http://guides.rubyonrails.org/security.html][guides.rubyonrails.org/security.html]]
   - Practical Software Security [[https://github.com/curphey/pss_book][github.com/curphey/pss_book]]
+  - Web Application Hackers Handbook [[http://mdsec.net/wahh/][mdsec.net/wahh]]
   - OWASP Top 10 [[https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project][www.owasp.org/index.php/Category:OWASP_Top_Ten_Project]]
-
+  - OWASP WebGaot Project [[https://www.owasp.org/index.php/Category:OWASP_WebGoat_Project][www.owasp.org/index.php/Category:OWASP_WebGoat_Project]]
 #+TAGS: slide(s)
 
 #+STYLE: <link rel="stylesheet" type="text/css" href="common.css" />
